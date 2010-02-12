@@ -1,8 +1,4 @@
 import docutils
-import docutils.core
-import docutils.parsers.rst
-
-
 import pygments
 import pygments.lexers
 import pygments.formatters
@@ -24,7 +20,5 @@ def pygments_directive(name, arguments, options, content, lineno,
     return [docutils.nodes.raw('', parsed, format='html')]
 pygments_directive.arguments = (1, 0, 1)
 pygments_directive.content = 1
+
 docutils.parsers.rst.directives.register_directive('code', pygments_directive)
-
-
-docutils.core.publish_cmdline(writer_name='html', description='lol')
