@@ -1,5 +1,6 @@
 import itertools
 import sys
+import os.path
 import logging
 log = logging.getLogger('reSTsite.handlers')
 
@@ -12,6 +13,11 @@ class Handler(object):
     """
     # File extensions this handler handles
     EXTS = ()
+    # Destination file extension
+    EXT_DEST = '.html'
+
+    def translate_path(self, path):
+        return os.path.splitext(path)[0] + self.EXT_DEST
 
 
 def load_handlers(handlers):
