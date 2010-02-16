@@ -10,6 +10,7 @@ class Handler(object):
 
     Exists primarily for collecting subclasses (actual file handlers).
     """
+    # File extensions this handler handles
     EXTS = ()
 
 

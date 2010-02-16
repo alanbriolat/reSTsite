@@ -24,8 +24,7 @@ for full, rel, ext in fs.walk(SITE_DIR):
     # Skip unhandled extensions
     if ext in handlers:
         log.info('Processing %s' % rel)
-        source = full
         dest = os.path.splitext(os.path.join(DEPLOY_DIR, rel))[0]
 
         handler = handlers[ext]()
-        fs.create(dest).write(handler.render_from_file(source))
+        fs.create(dest).write(handler.render_from_file(full, rel))
