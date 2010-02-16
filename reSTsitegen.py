@@ -2,44 +2,40 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 log = logging.getLogger('reSTsite')
 import os.path
+import sys
+
+import reSTsite
+import reSTsite.handlers
+import reSTsite.filesystem as fs
+from reSTsite import settings
+
+configfile = sys.argv[1] if len(sys.argv) > 1 else 'config.yaml'
+if os.path.exists(configfile):
+    reSTsite.load_settings(configfile)
+else:
+    log.error('Configuration file missing')
 
 import reSTsite.handlers
 import reSTsite.filesystem as fs
 
-
-DEFAULTS = {
-        # Global settings
-        'site_path':        'content',
-        'static_path':      'static',
-        'deploy_path':      'deploy',
-        'template_path':    'templates',
-        'handlers':         ['reST'],
-        # Per-content settings
-        'title':            'Untitled',
-        'template':         'default.html',
-        }
-
-SETTINGS = DEFAULTS
-
-reSTsite.handlers.load_handlers(SETTINGS['handlers'])
+reSTsite.handlers.load_handlers(settings['handlers'])
 handlers = reSTsite.handlers.get_extension_handlers()
 
 from reSTsite.templates import TemplateEngine
-tpl = TemplateEngine(SETTINGS['template_path'])
+tpl = TemplateEngine(settings['template_path'])
 
 # Walk files to be copied
-for full, rel, ext in fs.walk(SETTINGS['static_path']):
+for full, rel, ext in fs.walk(settings['static_path']):
     log.info('Copying static %s' % rel)
-    fs.copy(full, os.path.join(SETTINGS['deploy_path'], rel))
+    fs.copy(full, os.path.join(settings['deploy_path'], rel))
 
 # Walk files to be processed
-for full, rel, ext in fs.walk(SETTINGS['site_path']):
+for full, rel, ext in fs.walk(settings['site_path']):
     # Skip unhandled extensions
     if ext in handlers:
         log.info('Processing %s' % rel)
-        handler = handlers[ext]()
-        dest = os.path.join(SETTINGS['deploy_path'], handler.translate_path(rel))
-        metadata, context = handler.render_from_file(full, rel)
-        context['metadata'] = metadata
-        data = tpl.render(metadata.get('template', SETTINGS['template']), context)
-        open(dest, 'w').write(data)
+        handler = handlers[ext](full, rel)
+        dest = os.path.join(settings['deploy_path'], handler.get_target_path())
+        context = handler.to_context()
+        data = tpl.render(context['template'], context)
+        fs.create(dest).write(data)

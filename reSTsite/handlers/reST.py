@@ -12,17 +12,16 @@ class reSTHandler(Handler):
     EXTS = ('.rst', '.rest', '.restructuredtext')
     EXT_DEST = '.html'
 
-    def __init__(self):
-        pass
+    def get_parts(self):
+        parts = publish_parts(self.load_string(), writer_name='html')
+        self.metadata = MetadataDirective.get_metadata()
+        return {'title': parts['title'],
+                'htmlmeta': parts['meta'],
+                'htmlcontent': parts['html_body']}
 
-    def render_from_file(self, fullpath, relpath):
-        parts = publish_parts(open(fullpath, 'r').read(), writer_name='html')
-        metadata = MetadataDirective.get_metadata()
-        # Title can be obtained from docutils if not supplied
-        if not 'title' in metadata:
-            metadata['title'] = parts['title']
-        return (metadata, {'htmlmeta': parts['meta'],
-                           'htmlcontent': parts['html_body']})
+
+    def get_metadata(self):
+        return self.metadata
 
 
 class MetadataDirective(Directive):
