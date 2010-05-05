@@ -2,7 +2,16 @@ site_path: content
 template_path: templates
 deploy_path: deploy
 static_path: static
+
+site_name: "reSTsite Example"
 site_url: "file:///home/alan/Projects/reSTsite/deploy/"
+
+stylesheets:
+    - css/style.css
+    - css/pygments.css
+
+javascript: []
+
 handlers:
     - reST
 

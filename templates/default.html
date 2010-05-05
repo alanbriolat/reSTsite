@@ -1,8 +1,14 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
 <html xmlns="http://www.w3.org/1999/xhtml"> 
     <head>
-        <title>{{ title }} &laquo; reSTsite</title>
-        <link rel="stylesheet" type="text/css" href="{{ settings.site_url }}foo.css" />
+        <title>{{ title }} &laquo; {{ settings.site_name }}</title>
+        <base href="{{ settings.site_url }}" />
+        {% for stylesheet in settings.stylesheets %}
+        <link rel="stylesheet" type="text/css" href="{{ stylesheet }}" />
+        {% endfor %}
+        {% for js in settings.javascript %}
+        <script type="text/javascript" src="{{ js }}"></script>
+        {% endfor %}
         {% block head %}
         {{ htmlhead }}
         {% endblock %}
