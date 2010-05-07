@@ -63,5 +63,5 @@ def get_extension_handlers(site):
             if ext in extmap:
                 log.warning('Overriding handler for %s' % ext)
             extmap[ext] = hdlr
-            log.info('Registered %s for %s' % (hdlr, ext))
+            log.debug('Registered %s for %s' % (hdlr, ext))
     return extmap
