@@ -6,10 +6,10 @@ site:
 processors:
     # Static processor: copy everything that's not hidden into the deploy dir
     static:
-        path: .
+        path: "."
     # Blog: process _blog/year-month-day-slug.rst -> year/month/slug.html
     blog:
-        path: _blog
+        path: "_blog"
         # Granularity of blog paths:
         #   0 = 2010-05-05-hello-world.html
         #   1 = 2010/hello-world.html
@@ -17,14 +17,14 @@ processors:
         #   3 = 2010/05/05/hello-world.html
         granularity: 2
     pages:
-        path: _pages
+        path: "_pages"
 
 handlers:
     restructuredtext: {}
 
 stylesheets:
-    - css/pygments.css
-    - css/style.css
+    - "css/pygments.css"
+    - "css/style.css"
 
 defaults:
-    layout: default.html
+    layout: "default.html"
