@@ -20,3 +20,5 @@ There are LOTS of things I still need to do, this list is mainly here to remind 
   * Allow configuration of logging level in `_config.yaml`
   * Move `_templates` to `_layouts`
   * Allow configuration of which handlers are loaded
+  * Add a `.less` handler for [LessCSS](http://lesscss.org/)
+  * Add a Markdown handler
