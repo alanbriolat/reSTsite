@@ -1,0 +1,30 @@
+site:
+    name: "reSTsite Example"
+    url: "file:///home/alan/Projects/reSTsite/example/_deploy/"
+
+# Site processors to use, executed in the order they're defined here
+processors:
+    # Static processor: copy everything that's not hidden into the deploy dir
+    static:
+        path: .
+    # Blog: process _blog/year-month-day-slug.rst -> year/month/slug.html
+    blog:
+        path: _blog
+        # Granularity of blog paths:
+        #   0 = 2010-05-05-hello-world.html
+        #   1 = 2010/hello-world.html
+        #   2 = 2010/05/hello-world.html
+        #   3 = 2010/05/05/hello-world.html
+        granularity: 2
+    pages:
+        path: _pages
+
+handlers:
+    restructuredtext: {}
+
+stylesheets:
+    - css/pygments.css
+    - css/style.css
+
+defaults:
+    layout: default.html

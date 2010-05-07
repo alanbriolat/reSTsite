@@ -1,27 +1,30 @@
-import logging
-log = logging.getLogger('reSTsite.handlers.reST')
-
-from reSTsite.handlers import Handler
-
 from docutils.core import publish_parts
 from docutils.parsers.rst import Directive, directives
 from docutils import nodes
 import yaml
 
-class reSTHandler(Handler):
+from reSTsite.handlers import Handler
+import reSTsite.filesystem as fs
+from reSTsite.actions import JinjaAction
+
+class RstHandler(Handler):
     EXTS = ('.rst', '.rest', '.restructuredtext')
-    EXT_DEST = '.html'
 
-    def get_parts(self):
-        parts = publish_parts(self.load_string(), writer_name='html')
-        self.metadata = MetadataDirective.get_metadata()
-        return {'title': parts['title'],
-                'htmlmeta': parts['meta'],
-                'htmlcontent': parts['html_body']}
+    def process(self, relpath):
+        parts = publish_parts(open(relpath, 'r').read(), writer_name='html')
+        meta = self.site.config.get('defaults', dict()).copy()
+        meta.update(fs.get_path_metadata(relpath))
+        meta.update(MetadataDirective.get_metadata())
 
+        context = self.get_default_context()
+        context.update({
+            'meta': meta,
+            'title': parts['title'],
+            'htmlmeta': parts['meta'],
+            'htmlcontent': parts['html_body'],
+        })
+        return JinjaAction(self.site, relpath, context)
 
-    def get_metadata(self):
-        return self.metadata
 
 
 class MetadataDirective(Directive):

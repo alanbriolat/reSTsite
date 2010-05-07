@@ -1,97 +1,33 @@
-import itertools
 import sys
-import os.path
-import re
 import logging
 log = logging.getLogger('reSTsite.handlers')
-
-from reSTsite import settings
 
 
 class Handler(object):
     """
-    File handler base class
+    Handler base class
 
-    Exists primarily for collecting subclasses (actual file handlers).
+    A handler is something which knows how to process a particular kind of file.
+    The type of a file is determined primarily by its extension.  The purpose of
+    a handler is to create an Action for a file, which then is responsible for
+    creating the necessary content in the deploy directory.
     """
     # File extensions this handler handles
     EXTS = ()
-    # Destination file extension
-    EXT_DEST = '.html'
 
-    # Get date from filename - if matched (year, month, day) = group(2, 5, 7)
-    regex_metadata_filename = re.compile(
-            r"""^
-                # Date
-                ((?P<year>\d{4})(-(?P<month>\d{2})(-(?P<day>\d{2}))?)?\W+)?
-                # Slug/title
-                (?P<slug>.+)
-                $""", re.X)
-    regex_metadata_directory = re.compile(
-            r"""^
-                # Tags
-                (?P<tags>.*?)
-                # Date
-                (/?(?P<year>\d{4})(/(?P<month>\d{2})(/(?P<day>\d{2}))?)?)?
-                $""".replace('/', os.path.sep), re.X)
+    def __init__(self, site):
+        self.site = site
 
 
-    def __init__(self, fullpath, relpath):
-        self.fullpath = fullpath
-        self.relpath = relpath
-
-
-    def get_target_path(self):
-        return os.path.splitext(self.relpath)[0] + self.EXT_DEST
-
-    
-    def get_path_metadata(self):
+    def process(self, relpath):
         """
-        Attempt to extract metadata from the path
+        Process a file, returning an Action
         """
-        # Extract metadata from directory name
-        dir_metadata = self.regex_metadata_directory.search(
-                os.path.dirname(self.relpath))
-        dir_metadata = dir_metadata.groupdict()
-        # Sanitise directory metadata
-        dir_metadata['tags'] = set(dir_metadata['tags'].split(os.path.sep))
-        # Extract metadata from filename
-        file_metadata = self.regex_metadata_filename.search(
-                os.path.basename(self.relpath))
-        file_metadata = file_metadata.groupdict()
-        # Sanitise file metadata
-        file_metadata['slug'] = os.path.splitext(file_metadata['slug'])[0]
-        # Merge metadata
-        dir_metadata.update(file_metadata)
-        # Strip out empty metadata
-        for k, v in dir_metadata.items():
-            if not v:
-                del dir_metadata[k]
-        return dir_metadata
+        raise NotImplementedError
 
 
-    def to_context(self):
-        """
-        Build a context dictionary
-
-        Get the context dictionary for this file.  Options are overridden in the
-        following priority order (lowest to highest):
-
-            settings['defaults']
-            path metadata
-            document parts
-            document metadata
-        """
-        context = settings.get('defaults', dict()).copy()
-        context.update(self.get_path_metadata())
-        context.update(self.get_parts())
-        context.update(self.get_metadata())
-        context['settings'] = settings
-        return context
-
-
-    def load_string(self):
-        return open(self.fullpath, 'r').read()
+    def get_default_context(self):
+        return {'config': self.site.config}
 
 
 def load_handlers(handlers):
@@ -116,15 +52,16 @@ def find_handlers():
     return Handler.__subclasses__()
 
 
-def get_extension_handlers():
+def get_extension_handlers(site):
     """
     Get a mapping of file extensions to Handler classes
     """
     extmap = dict()
     for h in find_handlers():
+        hdlr = h(site)
         for ext in h.EXTS:
             if ext in extmap:
                 log.warning('Overriding handler for %s' % ext)
-            extmap[ext] = h
-            log.info('Registered %s for %s' % (h, ext))
+            extmap[ext] = hdlr
+            log.info('Registered %s for %s' % (hdlr, ext))
     return extmap

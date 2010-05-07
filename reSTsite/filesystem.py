@@ -1,5 +1,6 @@
 import os
 import shutil
+import re
 
 def hidden_dir_filter(d):
     """
@@ -28,6 +29,51 @@ def get_relpath(root_dir, path):
         (remaining, part) = os.path.split(remaining)
         relative = os.path.join(part, relative)
     return relative
+
+
+def get_target_path(root, relpath, newext = None):
+    if newext:
+        relpath = os.path.splitext(relpath)[0] + newext
+    return os.path.join(root, '_deploy', relpath)
+
+
+# Get date and slug from filename
+regex_metadata_filename = re.compile(
+        r"""^
+            # Date
+            ((?P<year>\d{4})(-(?P<month>\d{2})(-(?P<day>\d{2}))?)?\W+)?
+            # Slug/title
+            (?P<slug>.+)
+            $""", re.X)
+# Get tags and date from directory
+regex_metadata_directory = re.compile(
+        r"""^
+            # Tags
+            (?P<tags>.*?)
+            # Date
+            (/?(?P<year>\d{4})(/(?P<month>\d{2})(/(?P<day>\d{2}))?)?)?
+            $""".replace('/', os.path.sep), re.X)
+
+
+def get_path_metadata(relpath):
+    """
+    Attempt to extract metadata from a path
+    """
+    # Extract metadata from directory
+    dirmeta = regex_metadata_directory.search(os.path.dirname(relpath)).groupdict()
+    # Sanitise tags
+    dirmeta['tags'] = set(dirmeta['tags'].split(os.path.sep))
+    # Extract metadata from filename
+    filemeta = regex_metadata_filename.search(os.path.basename(relpath)).groupdict()
+    # Remove file extension from slug
+    filemeta['slug'] = os.path.splitext(filemeta['slug'])[0]
+    # Merge metadata
+    dirmeta.update(filemeta)
+    # Strip empty entries
+    for k, v in dirmeta.items():
+        if not v:
+            del dirmeta[k]
+    return dirmeta
 
 
 def walk(root_dir):
