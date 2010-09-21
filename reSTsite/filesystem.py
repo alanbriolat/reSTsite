@@ -1,34 +1,53 @@
 import os
-import shutil
+from itertools import ifilter
 import re
 
+
 def hidden_dir_filter(d):
-    """
-    Return True if the directory begins with . or _
+    """Check if a directory path is hidden.
+    
+    Return True if a directory should be hidden.  A directory is considered
+    hidden if it starts with '.' or '_'.
     """
     return d.startswith('.') or d.startswith('_')
 
 
-def hidden_file_filter(f):
+def visible_file_filter(f):
+    """Check if a file path is visible.
+
+    Return False if a file should be hidden.  A file is considered hidden if
+    it starts with '.' or '_', or ends with '~'.
     """
-    Return True if the filename begins with . or _ or ends with ~
-    """
-    return hidden_dir_filter(f) or f.endswith('~')
+    return not (f.startswith('.') or f.startswith('_') or f.endswith('~'))
 
 
-def get_relpath(root_dir, path):
-    """
-    Find the relative path of some path contained within root_dir
+class FS:
+    def __init__(self, root):
+        self.root = root
 
-    Adapted from:
-    http://github.com/lakshmivyas/hyde/blob/master/hydeengine/path_util.py
-    """
-    relative = ''
-    remaining = path
-    while not remaining == root_dir:
-        (remaining, part) = os.path.split(remaining)
-        relative = os.path.join(part, relative)
-    return relative
+    def open(self, path, mode='r'):
+        return open(os.path.join(self.root, path), mode)
+
+    def _walk(self):
+        for root, dirs, files in os.walk(self.root):
+            # Remove hidden dirs from tree traversal
+            for d in filter(hidden_dir_filter, dirs):
+                dirs.remove(d)
+            # Yield only visible files
+            for f in ifilter(visible_file_filter, files):
+                yield FSFile(self, os.path.relpath(os.path.join(root, f), self.root))
+
+    def __iter__(self):
+        return self._walk()
+
+
+class FSFile:
+    def __init__(self, fs, path):
+        self.fs = fs
+        self.path = path
+
+    def open(self, path, mode='r'):
+        return self.fs.open(path, mode)
 
 
 def get_target_path(root, relpath, newext = None):
