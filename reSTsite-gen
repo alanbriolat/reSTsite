@@ -1,57 +1,46 @@
 #!/usr/bin/env python
-
-import logging
-logging.basicConfig(level=logging.DEBUG,
-        format='%(levelname)-8s [%(name)s] %(message)s')
-log = logging.getLogger('reSTsite')
-
-from optparse import OptionParser
-parser = OptionParser()
-parser.add_option('-r', '--root', dest='root', help='root directory',
-        metavar='DIR', default='.')
-(options, args) = parser.parse_args()
-
-import reSTsite
-site = reSTsite.Site(options.root)
-site.process()
-
-exit()
-
+import optparse
 import os.path
-import sys
+import logging
 
 import reSTsite
-import reSTsite.handlers
-import reSTsite.filesystem as fs
-from reSTsite import settings
 
-configfile = sys.argv[1] if len(sys.argv) > 1 else 'config.yaml'
-if os.path.exists(configfile):
-    reSTsite.load_settings(configfile)
-else:
-    log.error('Configuration file missing')
 
-import reSTsite.handlers
-import reSTsite.filesystem as fs
+def main(args):
+    parser = optparse.OptionParser(usage='%prog [options]', version='%prog 0.1')
+    parser.add_option('-s', '--sitepath',
+                      dest='site_path',
+                      help='Root directory of site [default: current dir]')
+    parser.add_option('-c', '--config',
+                      dest='config',
+                      help='Configuration file')
+    parser.add_option('-q', '--quiet',
+                      action='store_const',
+                      dest='loglevel',
+                      const=logging.ERROR)
+    parser.add_option('-d', '--debug',
+                      action='store_const',
+                      dest='loglevel',
+                      const=logging.DEBUG)
+    parser.set_defaults(site_path='',
+                        loglevel=logging.INFO)
 
-reSTsite.handlers.load_handlers(settings['handlers'])
-handlers = reSTsite.handlers.get_extension_handlers()
+    options, args = parser.parse_args(args)
 
-from reSTsite.templates import TemplateEngine
-tpl = TemplateEngine(settings['template_path'])
+    if len(args) > 0:
+        parser.error('Unrecognised options: ' + str(args))
 
-# Walk files to be copied
-for full, rel, ext in fs.walk(settings['static_path']):
-    log.info('Copying static %s' % rel)
-    fs.copy(full, os.path.join(settings['deploy_path'], rel))
+    logging.basicConfig(format='[%(levelname)-8s] %(name)s: %(message)s',
+                        level=options.loglevel)
 
-# Walk files to be processed
-for full, rel, ext in fs.walk(settings['site_path']):
-    # Skip unhandled extensions
-    if ext in handlers:
-        log.info('Processing %s' % rel)
-        handler = handlers[ext](full, rel)
-        dest = os.path.join(settings['deploy_path'], handler.get_target_path())
-        context = handler.to_context()
-        data = tpl.render(context['template'], context)
-        fs.create(dest).write(data)
+    if not options.config:
+        options.config = os.path.join(options.site_path, '_settings.py')
+
+    site = reSTsite.Site(options)
+    site.process()
+    site.generate()
+
+
+if __name__ == '__main__':
+    import sys
+    main(sys.argv[1:])

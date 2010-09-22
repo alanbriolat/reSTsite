@@ -1,3 +1,28 @@
-import yaml
+import imp
+import os.path
+import logging
+_log = logging.getLogger('reSTsite.site')
 
-from site import Site
+from filesystem import SourceDirectory
+
+
+class Site:
+    def __init__(self, options):
+        try:
+            self.settings = imp.load_source('settings', options.config)
+        except Exception:
+            _log.critical('The settings file "%s" contains errors that prevent it '
+                          'from being loaded as Python module' % (options.config,))
+            raise
+
+        self.directories = list()
+        for path, settings in self.settings.CONTENT:
+            d = SourceDirectory(self, os.path.join(options.site_path, path), settings)
+            self.directories.append((path, d))
+
+    def process(self):
+        for path, d in self.directories:
+            d.process()
+
+    def generate(self):
+        pass
