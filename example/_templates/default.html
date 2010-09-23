@@ -1,14 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
 <html xmlns="http://www.w3.org/1999/xhtml"> 
     <head>
-        <title>{{ title }} &laquo; {{ config.site.name }}</title>
-        <base href="{{ config.site.url }}" />
-        {% for stylesheet in config.stylesheets %}
-        <link rel="stylesheet" type="text/css" href="{{ stylesheet }}" />
-        {% endfor %}
-        {% for js in config.javascript %}
-        <script type="text/javascript" src="{{ js }}"></script>
-        {% endfor %}
+        <title>{{ title }}</title>
         {% block head %}
         {{ htmlhead }}
         {% endblock %}
@@ -17,8 +10,8 @@
         {% endblock %}
     </head>
     <body>
-        {% block content %}
-        {{ htmlcontent }}
+        {% block body %}
+        {{ htmlbody }}
         {% endblock %}
     </body>
 </html>

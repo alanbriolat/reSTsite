@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 from docutils.core import publish_parts
 from docutils.parsers.rst import Directive, directives
 from docutils import nodes
@@ -9,7 +11,15 @@ class RestructuredText:
         pass
 
     def __call__(self, f):
-        pass
+        parts = publish_parts(open(f.fullpath, 'r').read(), writer_name='html')
+        metadata = MetadataDirective.get_metadata()
+        if metadata is not None:
+            f.update(metadata)
+        f.update({
+            'title': parts['title'],
+            'htmlmeta': parts['meta'],
+            'htmlbody': parts['html_body'],
+        })
 
 
 class MetadataDirective(Directive):

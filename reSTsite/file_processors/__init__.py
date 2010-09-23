@@ -1,7 +1,8 @@
 import os.path
 import re
 
-from reSTsite.file_processors.rst import RestructuredText
+from reSTsite.file_processors.docutils import RestructuredText
+from reSTsite.file_processors.jinja2 import Jinja2Output
 
 
 class TargetPathPrefix:

@@ -3,11 +3,12 @@ import os.path
 import logging
 _log = logging.getLogger('reSTsite.site')
 
-from filesystem import SourceDirectory
+from filesystem import SourceDirectory, Directory
 
 
 class Site:
     def __init__(self, options):
+        self.options = options
         try:
             self.settings = imp.load_source('settings', options.config)
         except Exception:
@@ -25,4 +26,8 @@ class Site:
             d.process()
 
     def generate(self):
-        pass
+        targetdir = Directory(self,
+                              os.path.join(self.options.site_path,
+                                           self.settings.DEPLOY_DIR))
+        for path, d in self.directories:
+            d.generate(targetdir)

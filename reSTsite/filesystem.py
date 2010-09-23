@@ -79,16 +79,15 @@ class SourceDirectory(Directory):
                 if fnmatch.fnmatch(f.basename, pattern):
                     processor(f)
 
-        print self.files
-
     def process(self):
         self.process_files()
 
-    def generate_files(self):
-        pass
+    def generate_files(self, targetdir):
+        for f in self.files:
+            f.generate(targetdir)
 
-    def generate(self):
-        pass
+    def generate(self, targetdir):
+        self.generate_files(targetdir)
 
 
 class File(dict):
@@ -96,6 +95,7 @@ class File(dict):
         dict.__init__(self)
 
         self.directory = directory
+        self.site = directory.site
         self.path = path
 
         self['target'] = self.path
@@ -108,3 +108,14 @@ class File(dict):
     @property
     def basename(self):
         return os.path.basename(self.path)
+
+    @property
+    def url(self):
+        return self['target']
+
+    def change_extension(self, ext):
+        self['target'] = os.path.splitext(self['target'])[0] + ext
+        self['ext'] = ext
+
+    def generate(self, targetdir):
+        _log.info('%s -> %s' % (self.path, self['target']))

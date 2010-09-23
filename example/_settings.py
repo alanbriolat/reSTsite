@@ -1,3 +1,4 @@
+TEMPLATE_DIR = '_templates'
 # Directory generated site is stored in
 DEPLOY_DIR = '_deploy'
 # Generated site base URL
@@ -46,6 +47,9 @@ CONTENT = (
                 'pattern': 'blog/%(year)s/%(month)s/%(slug)s%(ext)s',
             }),
             ('*.rst', 'reSTsite.file_processors.RestructuredText', {}),
+            ('*.rst', 'reSTsite.file_processors.Jinja2Output', {
+                'template': 'default.html'
+            }),
         ),
         'dir_processors': (
             #('reSTsite.dir_processors.DateArchiveIndex', {}),
