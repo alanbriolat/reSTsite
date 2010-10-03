@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+
+{% block body %}
+
+<h2><a href="{{this.url}}">{{this.title}}</a></h2>
+
+<ul>
+    {% for f in this.files %}
+    <li><a href="{{f.url}}">{{f.title}}</a></li>
+    {% endfor %}
+</ul>
+
+<div class="prevnext">
+    {% if this.prev_by_date %}
+    <span class="prev">Previous: <a href="{{this.prev_by_date.url}}">{{this.prev_by_date.title}}</a></span>
+    {% endif %}
+    {% if this.next_by_date %}
+    <span class="next">Next: <a href="{{this.next_by_date.url}}">{{this.next_by_date.title}}</a></span>
+    {% endif %}
+</div>
+
+{% endblock %}

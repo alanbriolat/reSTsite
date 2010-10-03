@@ -16,4 +16,27 @@ comment at the beginning of the file.  This allows non-templated "plain" HTML
 files to coexist as static files.
 </p>
 
+<p>
+Here is an example of one file using generated data from the rest of the site:
+</p>
+
+<h3>Recent blog posts</h3>
+<ul>
+    {% for f in site.content.blog.archive.files[:5] %}
+    <li><a href="{{f.url}}">{{f.title}}</a></li>
+    {% endfor %}
+</ul>
+
+<h3>Blog archive</h3>
+<ul>
+    {% for year in site.content.blog.archive.years %}
+    <li><a href="{{year.url}}">{{year.title}}</a>
+    <ul>
+        {% for month in year.months %}
+        <li><a href="{{month.url}}">{{month.title}}</a></li>
+        {% endfor %}
+    </ul></li>
+    {% endfor %}
+</ul>
+
 {% endblock %}

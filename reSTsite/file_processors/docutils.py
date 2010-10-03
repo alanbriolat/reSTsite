@@ -17,7 +17,7 @@ class RestructuredText(Processor):
         f.update({
             'title': parts['title'],
             'htmlmeta': parts['meta'],
-            'htmlbody': parts['html_body'],
+            'htmlbody': parts['fragment'],
         })
 
 

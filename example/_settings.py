@@ -1,8 +1,9 @@
 import os.path
 
 DEPLOY_DIR = '_deploy'
-SITE_URL = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                    DEPLOY_DIR))  + '/'
+SITE_URL = '/~alan/reSTsite-example/'
+#SITE_URL = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__),
+#                                                    DEPLOY_DIR))  + '/'
 
 # Site content definitions
 #
@@ -19,17 +20,41 @@ CONTENT = {
     '_': {
         'path': '',
         'file_processors': (
-            ('*.rst',   ('reSTsite.file_processors.RestructuredText',
-                         ('reSTsite.file_processors.Jinja2Output', {'template': 'default.html'}))),
-            ('*.html',  ('reSTsite.file_processors.Jinja2Processor',)),
+            ('*.rst', (
+                'reSTsite.file_processors.RestructuredText',
+                ('reSTsite.file_processors.Jinja2Output', {
+                    'template': 'default.html',
+                }),
+            )),
+            ('*.html', (
+                'reSTsite.file_processors.Jinja2Processor',
+            )),
         ),
-        'recursive': True,
-        'dir_processors': (),
     },
     'static': {
         'path': '_static',
         'file_processors': (
-            ('*', ('reSTsite.file_processors.PassthroughProcessor',)),
+            ('*', (
+                'reSTsite.file_processors.PassthroughProcessor',
+            )),
+        ),
+    },
+    'blog': {
+        'path': '_blog',
+        'file_processors': (
+            ('*.rst', (
+                'reSTsite.file_processors.PathMetadata',
+                ('reSTsite.file_processors.RewriteTarget', {
+                    'pattern': '%(year)s/%(month)s/%(slug)s%(ext)s',
+                }),
+                'reSTsite.file_processors.RestructuredText',
+                ('reSTsite.file_processors.Jinja2Output', {
+                    'template': 'blog.html',
+                }),
+            )),
+        ),
+        'dir_processors': (
+            'reSTsite.dir_processors.ArchiveProcessor',
         ),
     },
 }

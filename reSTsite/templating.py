@@ -38,3 +38,7 @@ class reSTsiteEnvironment(Environment):
             return template.module.metadata.copy()
         else:
             return dict()
+
+    def render_layout_to_path(self, template, path, context=None):
+        template = self.get_template('layout/' + template)
+        template.stream(context).dump(path)

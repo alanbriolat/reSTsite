@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+
+{% block body %}
+
+<h2><a href="{{url}}">{{title}}</a></h2>
+
+{{ htmlbody }}
+
+<div class="prevnext">
+    <span class="prev">
+        {% if prev_by_date %}
+        Previous: <a href="{{prev_by_date.url}}">{{prev_by_date.title}}</a>
+        {% endif %}
+    </span>
+    <span class="next">
+        {% if next_by_date %}
+        Next: <a href="{{next_by_date.url}}">{{next_by_date.title}}</a>
+        {% endif %}
+    </span>
+</div>
+
+{% endblock %}

@@ -19,7 +19,7 @@ DEFAULTS = {
 }
 
 
-class Directory:
+class Directory(dict):
     """A directory, with a path relative to ``site['SITE_URL']``."""
     def __init__(self, site, path):
         self.site = site
@@ -49,10 +49,7 @@ class SourceDirectory(Directory):
             _log.debug('Adding processor chain for ' + pattern)
             self.file_processors.append((pattern, map(self._create_processor, processors)))
 
-        #self.dir_processors = list()
-        #for processor, kwargs in self.settings['dir_processors']:
-        #    cls = util.load_processor(processor)
-        #    self.dir_processors.append(cls(**kwargs))
+        self.dir_processors = map(self._create_processor, self.settings['dir_processors'])
 
     def _create_processor(self, processor):
         if isinstance(processor, tuple):
@@ -112,7 +109,8 @@ class SourceDirectory(Directory):
             f.process()
 
     def process_dir(self):
-        pass
+        for p in self.dir_processors:
+            p.process(self)
 
     def generate(self):
         _log.debug('Generating from ' + self.abs_sourcepath())
@@ -124,7 +122,8 @@ class SourceDirectory(Directory):
             f.generate()
 
     def generate_dir(self):
-        pass
+        for p in self.dir_processors:
+            p.generate(self)
 
 
     def to_context(self):
@@ -203,3 +202,6 @@ class File(dict):
         context['url'] = self.url
         context['dir'] = self.directory.to_context()
         return context
+
+    def __repr__(self):
+        return "<%s '%s'>" % (self.__class__.__name__, self.sourcepath)

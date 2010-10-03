@@ -29,7 +29,7 @@ class PathMetadata(Processor):
         f.update(filemeta)
 
 
-class TargetFromMetadata(Processor):
+class RewriteTarget(Processor):
     def __init__(self, pattern):
         self.pattern = pattern
 
