@@ -1,7 +1,11 @@
-<!--metadata:
-title:  An example HTML file
-layout: default.html
--->
+{% set metadata = {
+    'title': 'An example HTML file',
+    'template': 'default.html',
+} %}
+
+{% extends metadata.template %}
+
+<h2>{{ metadata.title }}</h2>
 
 <p>
 This is an example HTML file that should take advantage of templating.  It is

@@ -15,7 +15,7 @@ SITE_URL = '/'
 # aware that files generated from later basedirs can overwrite those generated
 # from earlier ones.
 CONTENT = (
-    ('', {
+    ('.', {
         # File/directory name patterns to exclude
         'exclude': ('.*', '_*', '*~'),
         # File/directory name patterns to specifically include, overriding exclude
@@ -31,6 +31,7 @@ CONTENT = (
             ('*.png', 'reSTsite.file_processors.TargetPathPrefix', {
                 'prefix': 'images',
             }),
+            ('*.html', 'reSTsite.file_processors.Jinja2Processor', {}),
         ),
         # Directory processors, run after all files have been visited and had
         # their file_processors run: (processor, kwargs) pairs.

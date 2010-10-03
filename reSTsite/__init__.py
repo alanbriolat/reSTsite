@@ -4,6 +4,7 @@ import logging
 _log = logging.getLogger('reSTsite.site')
 
 from filesystem import SourceDirectory, Directory
+from templating import reSTsiteEnvironment
 
 
 class Site:
@@ -15,6 +16,8 @@ class Site:
             _log.critical('The settings file "%s" contains errors that prevent it '
                           'from being loaded as Python module' % (options.config,))
             raise
+
+        self.tpl = reSTsiteEnvironment(self)
 
         self.directories = list()
         for path, settings in self.settings.CONTENT:

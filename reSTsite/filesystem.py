@@ -75,6 +75,7 @@ class SourceDirectory(Directory):
         self.files = map(partial(File, self), files)
 
         for f in self.files:
+            _log.debug('Processing ' + f.path)
             for pattern, processor in self.file_processors:
                 if fnmatch.fnmatch(f.basename, pattern):
                     processor(f)
