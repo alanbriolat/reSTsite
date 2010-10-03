@@ -1,6 +1,7 @@
 import fnmatch
+import os
 import os.path
-from itertools import ifilter, imap
+from itertools import ifilter
 from functools import partial
 import logging
 _log = logging.getLogger('reSTsite.filesystem')
@@ -9,6 +10,7 @@ import util
 
 
 DEFAULTS = {
+    'path': '',
     'exclude': ('.*', '_*', '*~'),
     'include': ('.htaccess',),
     'recursive': True,
@@ -18,33 +20,53 @@ DEFAULTS = {
 
 
 class Directory:
+    """A directory, with a path relative to ``site['SITE_URL']``."""
     def __init__(self, site, path):
         self.site = site
         self.path = path
 
-    def fullpath(self, path):
+    def sourcepath(self, path):
+        """Get path relative to site root from path relative to directory root."""
         return os.path.join(self.path, path)
+
+    def abs_sourcepath(self, path=''):
+        """Get absolute path from *path* relative to directory root."""
+        return self.site.abs_sourcepath(self.sourcepath(path))
 
 
 class SourceDirectory(Directory):
-    def __init__(self, site, path, settings):
-        Directory.__init__(self, site, path)
-
+    def __init__(self, site, settings):
+        self.site = site
         self.settings = DEFAULTS.copy()
         self.settings.update(settings)
 
-        self.file_processors = list()
-        for pattern, processor, kwargs in self.settings['file_processors']:
-            cls = util.load_processor(processor)
-            self.file_processors.append((pattern, cls(**kwargs)))
+        Directory.__init__(self, site, self.settings['path'])
 
-        self.dir_processors = list()
-        for processor, kwargs in self.settings['dir_processors']:
-            cls = util.load_processor(processor)
-            self.dir_processors.append(cls(**kwargs))
+        _log.debug('Configuring ' + self.abs_sourcepath())
+
+        self.file_processors = list()
+        for pattern, processors in self.settings['file_processors']:
+            _log.debug('Adding processor chain for ' + pattern)
+            self.file_processors.append((pattern, map(self._create_processor, processors)))
+
+        #self.dir_processors = list()
+        #for processor, kwargs in self.settings['dir_processors']:
+        #    cls = util.load_processor(processor)
+        #    self.dir_processors.append(cls(**kwargs))
+
+    def _create_processor(self, processor):
+        if isinstance(processor, tuple):
+            processor, kwargs = processor
+        else:
+            kwargs = dict()
+        cls = util.load_processor(processor)
+        return cls(**kwargs)
 
     def _visible_filter(self, path):
-        """Check if a file path should be visible."""
+        """Check if *path* should be visible.
+        
+        Decide if *path* should be visible, based on matching the basename part
+        against include and exclude filters."""
         path = os.path.basename(path)
         # If path matches an include, overrides everything else
         if util.fnmatchany(path, self.settings['include']):
@@ -56,16 +78,24 @@ class SourceDirectory(Directory):
         return True
 
     def _scan_non_recursive(self):
-        return ifilter(self._visible_filter,
-                       ifilter(os.path.isfile,
-                               imap(partial(os.path.join, self.path),
-                                    os.listdir(self.path))))
+        """Non-recursively generate file paths, relative to directory root."""
+        for f in os.listdir(self.abs_sourcepath()):
+            path = os.path.join(self.abs_sourcepath(), f)
+            if os.path.isfile(path) and self._visible_filter(path):
+                yield f
 
     def _scan_recursive(self):
-        for root, dirs, files in os.walk(self.path):
+        """Recursively generate file paths, relative to directory root."""
+        for root, dirs, files in os.walk(self.abs_sourcepath()):
+            relroot = os.path.relpath(root, self.abs_sourcepath())
             dirs[:] = filter(self._visible_filter, dirs)
             for f in ifilter(self._visible_filter, files):
-                yield os.path.relpath(os.path.join(root, f), self.path)
+                yield os.path.normpath(os.path.join(relroot, f))
+
+    def process(self):
+        _log.debug('Processing from ' + self.abs_sourcepath())
+        self.process_files()
+        self.process_dir()
 
     def process_files(self):
         if self.settings['recursive']:
@@ -75,20 +105,30 @@ class SourceDirectory(Directory):
         self.files = map(partial(File, self), files)
 
         for f in self.files:
-            _log.debug('Processing ' + f.path)
-            for pattern, processor in self.file_processors:
+            for pattern, processors in self.file_processors:
                 if fnmatch.fnmatch(f.basename, pattern):
-                    processor(f)
+                    f.processors[:] = processors
+                    break
+            f.process()
 
-    def process(self):
-        self.process_files()
+    def process_dir(self):
+        pass
 
-    def generate_files(self, targetdir):
+    def generate(self):
+        _log.debug('Generating from ' + self.abs_sourcepath())
+        self.generate_files()
+        self.generate_dir()
+
+    def generate_files(self):
         for f in self.files:
-            f.generate(targetdir)
+            f.generate()
 
-    def generate(self, targetdir):
-        self.generate_files(targetdir)
+    def generate_dir(self):
+        pass
+
+
+    def to_context(self):
+        return dict()
 
 
 class File(dict):
@@ -102,9 +142,30 @@ class File(dict):
         self['target'] = self.path
         self['ext'] = os.path.splitext(self.path)[1]
 
+        self.processors = list()
+
     @property
-    def fullpath(self):
-        return self.directory.fullpath(self.path)
+    def sourcepath(self):
+        """Source file path relative to site root."""
+        return self.directory.sourcepath(self.path)
+
+    @property
+    def abs_sourcepath(self):
+        """Absolute path to source file."""
+        return self.directory.abs_sourcepath(self.path)
+
+    @property
+    def destpath(self):
+        return self['target']
+
+    @property
+    def abs_destpath(self):
+        return self.site.abs_destpath(self.destpath)
+
+    @property
+    def targetpath(self):
+        """Target file path relative to deploy directory root."""
+        return self['target']
 
     @property
     def basename(self):
@@ -112,11 +173,33 @@ class File(dict):
 
     @property
     def url(self):
-        return self['target']
+        return self.site.url(self['target'])
 
     def change_extension(self, ext):
         self['target'] = os.path.splitext(self['target'])[0] + ext
         self['ext'] = ext
 
-    def generate(self, targetdir):
-        _log.info('%s -> %s' % (self.path, self['target']))
+    def process(self):
+        _log.debug('Processing %s' % (self.sourcepath,))
+        for p in self.processors:
+            p.process(self)
+
+    def generate(self):
+        _log.debug('Generating %s -> %s' % (self.sourcepath, self.destpath))
+        for p in self.processors:
+            p.generate(self)
+
+    def open_source(self, mode='r'):
+        return open(self.abs_sourcepath, mode)
+
+    def open_dest(self, mode='w'):
+        dirname = os.path.dirname(self.abs_destpath)
+        if not os.path.exists(dirname):
+            os.makedirs(os.path.dirname(self.abs_destpath))
+        return open(self.abs_destpath, mode)
+
+    def to_context(self):
+        context = self.copy()
+        context['url'] = self.url
+        context['dir'] = self.directory.to_context()
+        return context

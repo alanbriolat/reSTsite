@@ -5,6 +5,8 @@
 
 {% extends metadata.template %}
 
+{% block body %}
+
 <h2>{{ metadata.title }}</h2>
 
 <p>
@@ -13,3 +15,5 @@ denoted as such by the existence of the special <code>&lt;!--metadata:</code>
 comment at the beginning of the file.  This allows non-templated "plain" HTML
 files to coexist as static files.
 </p>
+
+{% endblock %}

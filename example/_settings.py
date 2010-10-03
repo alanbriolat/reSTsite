@@ -1,8 +1,8 @@
-TEMPLATE_DIR = '_templates'
-# Directory generated site is stored in
+import os.path
+
 DEPLOY_DIR = '_deploy'
-# Generated site base URL
-SITE_URL = '/'
+SITE_URL = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                    DEPLOY_DIR))  + '/'
 
 # Site content definitions
 #
@@ -14,7 +14,27 @@ SITE_URL = '/'
 # "exclude" pattern or the first definition being non-recursive.  Also be
 # aware that files generated from later basedirs can overwrite those generated
 # from earlier ones.
-CONTENT = (
+
+CONTENT = {
+    '_': {
+        'path': '',
+        'file_processors': (
+            ('*.rst',   ('reSTsite.file_processors.RestructuredText',
+                         ('reSTsite.file_processors.Jinja2Output', {'template': 'default.html'}))),
+            ('*.html',  ('reSTsite.file_processors.Jinja2Processor',)),
+        ),
+        'recursive': True,
+        'dir_processors': (),
+    },
+    'static': {
+        'path': '_static',
+        'file_processors': (
+            ('*', ('reSTsite.file_processors.PassthroughProcessor',)),
+        ),
+    },
+}
+
+_CONTENT = (
     ('.', {
         # File/directory name patterns to exclude
         'exclude': ('.*', '_*', '*~'),
@@ -80,3 +100,8 @@ CONTENT = (
 # An idea: cache the file data between process() and generate(), so that it can be loaded if the
 # file hasn't changed since it was generated.  Need to possibly implement some of the pickle
 # protocol to allow File objects to be pickled?
+#
+
+STYLESHEETS = (
+    'css/pygments.css',
+)

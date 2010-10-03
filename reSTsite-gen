@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import optparse
-import os.path
 import logging
 
 import reSTsite
@@ -23,6 +22,7 @@ def main(args):
                       dest='loglevel',
                       const=logging.DEBUG)
     parser.set_defaults(site_path='',
+                        config=None,
                         loglevel=logging.INFO)
 
     options, args = parser.parse_args(args)
@@ -33,10 +33,7 @@ def main(args):
     logging.basicConfig(format='[%(levelname)-8s] %(name)s: %(message)s',
                         level=options.loglevel)
 
-    if not options.config:
-        options.config = os.path.join(options.site_path, '_settings.py')
-
-    site = reSTsite.Site(options)
+    site = reSTsite.Site(options.site_path, options.config)
     site.process()
     site.generate()
 

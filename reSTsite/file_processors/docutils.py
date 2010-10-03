@@ -5,13 +5,12 @@ from docutils.parsers.rst import Directive, directives
 from docutils import nodes
 import yaml
 
+from reSTsite.processor import Processor
 
-class RestructuredText:
-    def __init__(self):
-        pass
 
-    def __call__(self, f):
-        parts = publish_parts(open(f.fullpath, 'r').read(), writer_name='html')
+class RestructuredText(Processor):
+    def process(self, f):
+        parts = publish_parts(open(f.abs_sourcepath, 'r').read(), writer_name='html')
         metadata = MetadataDirective.get_metadata()
         if metadata is not None:
             f.update(metadata)

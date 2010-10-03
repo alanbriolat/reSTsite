@@ -2,6 +2,10 @@
 <html xmlns="http://www.w3.org/1999/xhtml"> 
     <head>
         <title>{{ title }}</title>
+        <base href="{{site.SITE_URL}}" />
+        {% for ss in site.STYLESHEETS %}
+        <link rel="stylesheet" type="text/css" href="{{ss}}" />
+        {% endfor %}
         {% block head %}
         {{ htmlhead }}
         {% endblock %}

@@ -1,28 +1,29 @@
-from __future__ import absolute_import
-from functools import partial
-import os.path
-
-from reSTsite.util import FunctionChain
+from reSTsite.processor import Processor
 
 
-def template_generate(self, targetdir):
-    template = targetdir.site.tpl.get_template('layout/' + self['template'])
-    output = template.render(self)
-    print output
-
-
-class Jinja2Output:
+class Jinja2Output(Processor):
     def __init__(self, template, extension='.html'):
         self.template = template
         self.extension = extension
 
-    def __call__(self, f):
+    def process(self, f):
         f['template'] = self.template
         f.change_extension(self.extension)
-        f.generate = FunctionChain(f.generate, partial(template_generate, f))
+
+    def generate(self, f):
+        f.open_dest()
+        context = f.to_context()
+        template = f.site.tpl.get_template('layout/' + f['template'])
+        template.stream(context).dump(f.abs_destpath)
 
 
-class Jinja2Processor:
-    def __call__(self, f):
-        metadata = f.site.tpl.get_metadata(f.fullpath)
-        print metadata
+class Jinja2Processor(Processor):
+    def process(self, f):
+        metadata = f.site.tpl.get_metadata(f.sourcepath)
+        f.update(metadata)
+
+    def generate(self, f):
+        f.open_dest()
+        context = f.to_context()
+        template = f.site.tpl.get_template('site/' + f.sourcepath)
+        template.stream(context).dump(f.abs_destpath)
