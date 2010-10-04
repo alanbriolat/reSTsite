@@ -17,11 +17,12 @@ class Jinja2Output(Processor):
         template.stream(context).dump(f.abs_destpath)
 
 
-class Jinja2Processor(Processor):
+class Jinja2Metadata(Processor):
     def process(self, f):
-        metadata = f.site.tpl.get_metadata(f.sourcepath)
-        f.update(metadata)
+        f.update(f.site.tpl.get_metadata(f.sourcepath))
 
+
+class Jinja2Processor(Processor):
     def generate(self, f):
         f.open_dest()
         context = f.to_context()

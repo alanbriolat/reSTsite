@@ -27,6 +27,7 @@ CONTENT = {
                 }),
             )),
             ('*.html', (
+                'reSTsite.file_processors.Jinja2Metadata',
                 'reSTsite.file_processors.Jinja2Processor',
             )),
         ),
@@ -58,50 +59,6 @@ CONTENT = {
         ),
     },
 }
-
-_CONTENT = (
-    ('.', {
-        # File/directory name patterns to exclude
-        'exclude': ('.*', '_*', '*~'),
-        # File/directory name patterns to specifically include, overriding exclude
-        'include': ('.htaccess',),
-        # Traverse base directory recursively?
-        'recursive': True,
-        # Tuples of (pattern, processor, kwargs).  Processors are used in-order,
-        # and every processor for which the pattern matches the filename will be
-        # applied.  A processor might override the .generate() function, or it
-        # might change the target path, or any other number of things...
-        'file_processors': (
-            #('*.rst', 'reSTsite.file_processors.RestructuredText'),
-            ('*.png', 'reSTsite.file_processors.TargetPathPrefix', {
-                'prefix': 'images',
-            }),
-            ('*.html', 'reSTsite.file_processors.Jinja2Processor', {}),
-        ),
-        # Directory processors, run after all files have been visited and had
-        # their file_processors run: (processor, kwargs) pairs.
-        'dir_processors': (
-        ),
-    }),
-    ('_blog', {
-        'exclude': ('.*', '_*', '*~', '*_draft.*'),
-        'include': (),
-        'recursive': True,
-        'file_processors': (
-            ('*', 'reSTsite.file_processors.PathMetadata', {}),
-            ('*', 'reSTsite.file_processors.TargetFromMetadata', {
-                'pattern': 'blog/%(year)s/%(month)s/%(slug)s%(ext)s',
-            }),
-            ('*.rst', 'reSTsite.file_processors.RestructuredText', {}),
-            ('*.rst', 'reSTsite.file_processors.Jinja2Output', {
-                'template': 'default.html'
-            }),
-        ),
-        'dir_processors': (
-            #('reSTsite.dir_processors.DateArchiveIndex', {}),
-        ),
-    })
-)
 
 # Method of running:
 #

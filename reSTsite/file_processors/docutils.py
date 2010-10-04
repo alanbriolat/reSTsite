@@ -10,14 +10,21 @@ from reSTsite.processor import Processor
 
 class RestructuredText(Processor):
     def process(self, f):
-        parts = publish_parts(open(f.abs_sourcepath, 'r').read(), writer_name='html')
+        overrides = {
+            'cloak_email_addresses': True,
+            'initial_header_level': 2,
+            #'doctitle_xform': False,
+        }
+        parts = publish_parts(open(f.abs_sourcepath, 'r').read(),
+                              writer_name='html',
+                              settings_overrides=overrides)
         metadata = MetadataDirective.get_metadata()
         if metadata is not None:
             f.update(metadata)
         f.update({
             'title': parts['title'],
             'htmlmeta': parts['meta'],
-            'htmlbody': parts['fragment'],
+            'htmlbody': parts['html_body'],
         })
 
 

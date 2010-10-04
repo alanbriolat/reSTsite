@@ -1,10 +1,11 @@
 import os.path
 import re
 import shutil
+import subprocess
 
 from reSTsite.processor import Processor
 from reSTsite.file_processors.docutils import RestructuredText
-from reSTsite.file_processors.jinja2 import Jinja2Output, Jinja2Processor
+from reSTsite.file_processors.jinja2 import Jinja2Output, Jinja2Processor, Jinja2Metadata
 
 
 class TargetPathPrefix(Processor):
@@ -41,3 +42,20 @@ class PassthroughProcessor(Processor):
     def generate(self, f):
         f.open_dest()
         shutil.copy(f.abs_sourcepath, f.abs_destpath)
+
+
+class CommandProcessor(Processor):
+    def __init__(self, executable):
+        self.executable = executable
+
+    def generate(self, f):
+        f.open_dest()
+        subprocess.call([self.executable, f.abs_sourcepath, f.abs_destpath])
+
+
+class CSSProcessor(CommandProcessor):
+    def __init__(self, executable='lessc'):
+        CommandProcessor.__init__(self, executable)
+
+    def process(self, f):
+        f.change_extension('.css')
