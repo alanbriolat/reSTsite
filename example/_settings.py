@@ -4,6 +4,7 @@ DEPLOY_DIR = '_deploy'
 SITE_URL = '/~alan/reSTsite-example/'
 #SITE_URL = 'file://' + os.path.abspath(os.path.join(os.path.dirname(__file__),
 #                                                    DEPLOY_DIR))  + '/'
+SITE_NAME = 'reSTsite Example'
 
 # Site content definitions
 #
@@ -50,7 +51,7 @@ CONTENT = {
                 }),
                 'reSTsite.file_processors.RestructuredText',
                 ('reSTsite.file_processors.Jinja2Output', {
-                    'template': 'blog.html',
+                    'template': 'blog_entry.html',
                 }),
             )),
         ),
